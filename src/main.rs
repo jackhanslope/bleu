@@ -1,4 +1,5 @@
 use std::env;
+use std::process;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
@@ -7,7 +8,10 @@ use blurz::bluetooth_session::BluetoothSession as Session;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let config = Config::new(&args);
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        println!("Problem parsing args: {}", err);
+        process::exit(1);
+    });
 
     println!("Command: {}", config.command);
     println!("Device: {}", config.device);
@@ -24,10 +28,14 @@ struct Config {
 }
 
 impl Config {
-    fn new(args: &[String]) -> Config {
+    fn new(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough args");
+        }
+
         let command = args[1].clone();
         let device = args[2].clone();
 
-        Config { command, device }
+        Ok(Config { command, device })
     }
 }
