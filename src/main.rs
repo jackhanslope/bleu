@@ -13,9 +13,6 @@ fn main() {
         process::exit(1);
     });
 
-    println!("Command: {}", config.command);
-    println!("Device: {}", config.device);
-
     if let Err(e) = blue::run(config) {
         println!("Application error: {}", e);
         process::exit(1);
