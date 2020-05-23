@@ -1,6 +1,7 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 use std::env;
+use std::error::Error;
 use std::process;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
@@ -15,20 +16,22 @@ fn main() {
         process::exit(1);
     });
 
-    run(config);
-}
-
-fn run(config: Config) {
     println!("Command: {}", config.command);
     println!("Device: {}", config.device);
 
-    let session = &Session::create_session(None).unwrap();
-    let adapter: Adapter = Adapter::init(session).unwrap_or_else(|err| {
-        println!("Problem starting adapter: {}", err);
+    if let Err(e) = run(config) {
+        println!("Application error: {}", e);
         process::exit(1);
-    });
-    let device: Device = adapter.get_first_device().unwrap();
-    println!("device: {:?}", device);
+    }
+}
+
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let session = &Session::create_session(None).unwrap();
+    let adapter = Adapter::init(session)?;
+
+    println!("adapter successful");
+
+    Ok(())
 }
 
 struct Config {
