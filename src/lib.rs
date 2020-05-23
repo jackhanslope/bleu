@@ -1,6 +1,8 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 use std::error::Error;
+use std::fs;
+use std::vec;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
@@ -9,6 +11,12 @@ use blurz::bluetooth_session::BluetoothSession as Session;
 pub struct Config {
     pub command: String,
     pub device: String,
+}
+
+#[derive(Debug)]
+pub struct Entry {
+    path: String,
+    alias: String,
 }
 
 impl Config {
@@ -24,10 +32,32 @@ impl Config {
     }
 }
 
+fn read_devices() {
+    let contents = fs::read_to_string("device_store").unwrap();
+    let mut store: Vec<Entry> = Vec::new();
+    for line in contents.lines() {
+        let mut count = 0;
+        let mut ent = Entry {
+            path: String::from(""),
+            alias: String::from(""),
+        };
+        for val in line.split_whitespace() {
+            if count == 0 {
+                ent.path = val.to_string();
+            } else {
+                ent.alias = val.to_string();
+            }
+            count += 1;
+        }
+        store.push(ent);
+    }
+    println!("store: {:?}", store);
+}
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None).unwrap();
     let adapter = Adapter::init(session)?;
 
+    read_devices();
     println!("adapter successful");
 
     Ok(())
