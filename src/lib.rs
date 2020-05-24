@@ -47,13 +47,19 @@ fn read_devices() -> HashMap<String, String> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let session = &Session::create_session(None).unwrap();
-    let adapter = Adapter::init(session)?;
-    println!("adapter successful");
+    if let "connect" = &config.command[..] {
+        connect(config.device);
+    }
 
     Ok(())
 }
 
 fn connect(device: String) {
+    let session = &Session::create_session(None).unwrap();
+    let adapter = Adapter::init(session).unwrap();
     let store = read_devices();
+    let path = store.get(&device).unwrap();
+
+    let device = Device::new(session, path.to_string());
+    device.connect(5000);
 }
