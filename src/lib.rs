@@ -27,8 +27,11 @@ impl Config {
     }
 }
 
-fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let contents = fs::read_to_string("device_store")?;
+fn read_devices() -> Result<HashMap<String, String>, &'static str> {
+    let contents = match fs::read_to_string("device_store") {
+        Ok(file) => file,
+        Err(e) => return Err("Error reading device_store file."),
+    };
 
     let mut store = HashMap::new();
 
