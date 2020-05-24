@@ -28,7 +28,7 @@ impl Config {
 }
 
 fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let contents = fs::read_to_string("device_store").unwrap()?;
+    let contents = fs::read_to_string("device_store")?;
 
     let mut store = HashMap::new();
 
@@ -42,20 +42,22 @@ fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     if let "connect" = &config.command[..] {
-        connect(config.device);
+        connect(config.device)?;
     }
 
     Ok(())
 }
 
-fn connect(alias: String) {
+fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None).unwrap();
     let adapter = Adapter::init(session).unwrap();
-    let store = read_devices().unwrap();
+    let store = read_devices()?;
     let path = store.get(&alias).unwrap();
 
     let device = Device::new(session, path.to_string());
     let connection = device.connect(5000);
 
     println!("Connection to {} successful", alias);
+
+    Ok(())
 }
