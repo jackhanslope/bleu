@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
+use std::io::ErrorKind;
 use std::vec;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
@@ -30,7 +31,10 @@ impl Config {
 fn read_devices() -> Result<HashMap<String, String>, &'static str> {
     let contents = match fs::read_to_string("device_store") {
         Ok(file) => file,
-        Err(e) => return Err("Error reading device_store file."),
+        Err(e) => match e.kind() {
+            ErrorKind::NotFound => return Err("File device_store does not exist."),
+            _ => return Err("Error opening device_store file."),
+        },
     };
 
     let mut store = HashMap::new();
