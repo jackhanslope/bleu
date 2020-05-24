@@ -14,7 +14,7 @@ pub struct Config {
 }
 
 #[derive(Debug)]
-pub struct Entry {
+pub struct Devi {
     path: String,
     alias: String,
 }
@@ -32,12 +32,12 @@ impl Config {
     }
 }
 
-fn read_devices() {
+fn read_devices() -> Vec<Devi> {
     let contents = fs::read_to_string("device_store").unwrap();
-    let mut store: Vec<Entry> = Vec::new();
+    let mut store: Vec<Devi> = Vec::new();
     for line in contents.lines() {
         let mut count = 0;
-        let mut ent = Entry {
+        let mut ent = Devi {
             path: String::from(""),
             alias: String::from(""),
         };
@@ -51,14 +51,17 @@ fn read_devices() {
         }
         store.push(ent);
     }
-    println!("store: {:?}", store);
+    store
 }
+
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None).unwrap();
     let adapter = Adapter::init(session)?;
-
-    read_devices();
     println!("adapter successful");
 
     Ok(())
+}
+
+fn connect(device: String) {
+    let store = read_devices();
 }
