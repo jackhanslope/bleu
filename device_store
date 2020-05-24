@@ -1,2 +1,2 @@
-/org/bluez/hci0/dev_04_5D_4B_16_5D_50 headphones
-/org/bluez/hci0/dev_C0_28_8D_99_E2_DA speaker
+headphones /org/bluez/hci0/dev_04_5D_4B_16_5D_50
+speaker /org/bluez/hci0/dev_C0_28_8D_99_E2_DA

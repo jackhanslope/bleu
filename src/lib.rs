@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::vec;
@@ -32,25 +33,16 @@ impl Config {
     }
 }
 
-fn read_devices() -> Vec<Devi> {
+fn read_devices() -> HashMap<String, String> {
     let contents = fs::read_to_string("device_store").unwrap();
-    let mut store: Vec<Devi> = Vec::new();
+
+    let mut store = HashMap::new();
+
     for line in contents.lines() {
-        let mut count = 0;
-        let mut ent = Devi {
-            path: String::from(""),
-            alias: String::from(""),
-        };
-        for val in line.split_whitespace() {
-            if count == 0 {
-                ent.path = val.to_string();
-            } else {
-                ent.alias = val.to_string();
-            }
-            count += 1;
-        }
-        store.push(ent);
+        let line_vec: Vec<String> = line.split_whitespace().map(|x| x.to_string()).collect();
+        store.insert(line_vec[0].clone(), line_vec[1].clone());
     }
+
     store
 }
 
