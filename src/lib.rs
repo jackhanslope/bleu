@@ -48,12 +48,14 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn connect(device: String) {
+fn connect(alias: String) {
     let session = &Session::create_session(None).unwrap();
     let adapter = Adapter::init(session).unwrap();
-    let store = read_devices();
-    let path = store.get(&device).unwrap();
+    let store = read_devices().unwrap();
+    let path = store.get(&alias).unwrap();
 
     let device = Device::new(session, path.to_string());
-    device.connect(5000);
+    let connection = device.connect(5000);
+
+    println!("Connection to {} successful", alias);
 }
