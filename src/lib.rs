@@ -27,8 +27,8 @@ impl Config {
     }
 }
 
-fn read_devices() -> HashMap<String, String> {
-    let contents = fs::read_to_string("device_store").unwrap();
+fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
+    let contents = fs::read_to_string("device_store").unwrap()?;
 
     let mut store = HashMap::new();
 
@@ -37,7 +37,7 @@ fn read_devices() -> HashMap<String, String> {
         store.insert(line_vec[0].clone(), line_vec[1].clone());
     }
 
-    store
+    Ok(store)
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
