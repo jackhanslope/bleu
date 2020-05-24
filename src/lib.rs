@@ -14,12 +14,6 @@ pub struct Config {
     pub device: String,
 }
 
-#[derive(Debug)]
-pub struct Devi {
-    path: String,
-    alias: String,
-}
-
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, &'static str> {
         if args.len() < 3 {
