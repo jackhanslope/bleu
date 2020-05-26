@@ -56,8 +56,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 fn connect(alias: String) -> Result<(), Box<dyn Error>> {
-    let session = &Session::create_session(None).unwrap();
-    let adapter = Adapter::init(session).unwrap();
+    let session = &Session::create_session(None)?;
+    let adapter = Adapter::init(session)?;
     let store = read_devices()?;
 
     let path = match store.get(&alias) {
@@ -66,9 +66,16 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     };
 
     let device = Device::new(session, path.to_string());
-    let connection = device.connect(5000);
-
-    println!("Connection to {} successful", alias);
+    if device.is_connected()? {
+        println!("Already connected to {}", alias);
+    } else {
+        device.connect(10000).ok();
+        if device.is_connected()? {
+            println!("Connection to {} successful", alias);
+        } else {
+            return Err("Connection unsuccessful".into());
+        }
+    }
 
     Ok(())
 }
