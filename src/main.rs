@@ -14,7 +14,7 @@ fn main() {
     });
 
     if let Err(e) = blue::run(config) {
-        println!("Application error: {}", e);
+        println!("{}", e);
         process::exit(1);
     }
 }

@@ -29,13 +29,18 @@ impl Config {
 }
 
 fn read_devices() -> Result<HashMap<String, String>, &'static str> {
-    let contents = match fs::read_to_string("device_store") {
-        Ok(file) => file,
-        Err(e) => match e.kind() {
-            ErrorKind::NotFound => return Err("File 'device_store' does not exist."),
-            _ => return Err("Error opening 'device_store' file."),
-        },
-    };
+    let contents =
+        match fs::read_to_string("device_store") {
+            Ok(file) => file,
+            Err(e) => match e.kind() {
+                ErrorKind::NotFound => {
+                    return Err("Error accessing stored devices: 'device_store' does not exist.")
+                }
+                _ => return Err(
+                    "Error accessing stored devices: 'device_store' exists but can't be opened.",
+                ),
+            },
+        };
 
     let mut store = HashMap::new();
 
