@@ -74,6 +74,7 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     if device.is_connected()? {
         println!("Already connected to {}", alias);
     } else {
+        println!("Attempting to connect to {}", alias);
         device.connect(10000).ok();
         if device.is_connected()? {
             println!("Connection to {} successful", alias);
