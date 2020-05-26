@@ -29,13 +29,18 @@ impl Config {
 }
 
 fn read_devices() -> Result<HashMap<String, String>, &'static str> {
-    let contents = match fs::read_to_string("device_store") {
-        Ok(file) => file,
-        Err(e) => match e.kind() {
-            ErrorKind::NotFound => return Err("File device_store does not exist."),
-            _ => return Err("Error opening device_store file."),
-        },
-    };
+    let contents =
+        match fs::read_to_string("device_store") {
+            Ok(file) => file,
+            Err(e) => match e.kind() {
+                ErrorKind::NotFound => {
+                    return Err("Error accessing stored devices: 'device_store' does not exist.")
+                }
+                _ => return Err(
+                    "Error accessing stored devices: 'device_store' exists but can't be opened.",
+                ),
+            },
+        };
 
     let mut store = HashMap::new();
 
@@ -56,15 +61,27 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 fn connect(alias: String) -> Result<(), Box<dyn Error>> {
-    let session = &Session::create_session(None).unwrap();
-    let adapter = Adapter::init(session).unwrap();
+    let session = &Session::create_session(None)?;
+    let adapter = Adapter::init(session)?;
     let store = read_devices()?;
-    let path = store.get(&alias).unwrap();
+
+    let path = match store.get(&alias) {
+        Some(path) => path,
+        None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
+    };
 
     let device = Device::new(session, path.to_string());
-    let connection = device.connect(5000);
-
-    println!("Connection to {} successful", alias);
+    if device.is_connected()? {
+        println!("Already connected to {}", alias);
+    } else {
+        println!("Attempting to connect to {}", alias);
+        device.connect(10000).ok();
+        if device.is_connected()? {
+            println!("Connection to {} successful", alias);
+        } else {
+            return Err("Connection unsuccessful".into());
+        }
+    }
 
     Ok(())
 }
