@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
+use std::io::ErrorKind;
 use std::vec;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
@@ -27,8 +28,14 @@ impl Config {
     }
 }
 
-fn read_devices() -> HashMap<String, String> {
-    let contents = fs::read_to_string("device_store").unwrap();
+fn read_devices() -> Result<HashMap<String, String>, &'static str> {
+    let contents = match fs::read_to_string("device_store") {
+        Ok(file) => file,
+        Err(e) => match e.kind() {
+            ErrorKind::NotFound => return Err("File device_store does not exist."),
+            _ => return Err("Error opening device_store file."),
+        },
+    };
 
     let mut store = HashMap::new();
 
@@ -37,25 +44,27 @@ fn read_devices() -> HashMap<String, String> {
         store.insert(line_vec[0].clone(), line_vec[1].clone());
     }
 
-    store
+    Ok(store)
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     if let "connect" = &config.command[..] {
-        connect(config.device);
+        connect(config.device)?;
     }
 
     Ok(())
 }
 
-fn connect(alias: String) {
+fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None).unwrap();
     let adapter = Adapter::init(session).unwrap();
-    let store = read_devices().unwrap();
+    let store = read_devices()?;
     let path = store.get(&alias).unwrap();
 
     let device = Device::new(session, path.to_string());
     let connection = device.connect(5000);
 
     println!("Connection to {} successful", alias);
+
+    Ok(())
 }
