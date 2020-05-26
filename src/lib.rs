@@ -32,8 +32,8 @@ fn read_devices() -> Result<HashMap<String, String>, &'static str> {
     let contents = match fs::read_to_string("device_store") {
         Ok(file) => file,
         Err(e) => match e.kind() {
-            ErrorKind::NotFound => return Err("File device_store does not exist."),
-            _ => return Err("Error opening device_store file."),
+            ErrorKind::NotFound => return Err("File 'device_store' does not exist."),
+            _ => return Err("Error opening 'device_store' file."),
         },
     };
 
@@ -59,7 +59,11 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None).unwrap();
     let adapter = Adapter::init(session).unwrap();
     let store = read_devices()?;
-    let path = store.get(&alias).unwrap();
+
+    let path = match store.get(&alias) {
+        Some(path) => path,
+        None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
+    };
 
     let device = Device::new(session, path.to_string());
     let connection = device.connect(5000);
