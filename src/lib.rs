@@ -17,6 +17,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, &'static str> {
+        // TODO: change this so that I can input only one argument for disconnect
         if args.len() < 3 {
             return Err("not enough args");
         }
@@ -53,8 +54,10 @@ fn read_devices() -> Result<HashMap<String, String>, &'static str> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    if let "connect" = &config.command[..] {
-        connect(config.device)?;
+    match &config.command[..] {
+        "connect" => connect(config.device)?,
+        "disconnect" => disconnect()?,
+        _ => (),
     }
 
     Ok(())
@@ -82,6 +85,26 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
             return Err("Connection unsuccessful".into());
         }
     }
+
+    Ok(())
+}
+
+fn disconnect() -> Result<(), Box<dyn Error>> {
+    //TODO: change line below
+    let alias = String::from("speaker");
+    let session = &Session::create_session(None)?;
+    let adapter = Adapter::init(session)?;
+    let store = read_devices()?;
+
+    let path = match store.get(&alias) {
+        Some(path) => path,
+        None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
+    };
+
+    let device = Device::new(session, path.to_string());
+    let connected = device.is_connected();
+    println!("connected: {:?}", connected);
+    device.disconnect();
 
     Ok(())
 }
