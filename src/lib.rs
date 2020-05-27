@@ -57,7 +57,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match &config.command[..] {
         "connect" => connect(config.device)?,
         "disconnect" => disconnect()?,
-        _ => (),
+        _ => return Err(format!("Command {} not recognised.", config.command).into()),
     }
 
     Ok(())
