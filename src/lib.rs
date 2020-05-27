@@ -56,7 +56,7 @@ fn read_devices() -> Result<HashMap<String, String>, &'static str> {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match &config.command[..] {
         "connect" => connect(config.device)?,
-        "disconnect" => disconnect()?,
+        "disconnect" => disconnect_all()?,
         _ => return Err(format!("Command {} not recognised.", config.command).into()),
     }
 
@@ -89,22 +89,26 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn disconnect() -> Result<(), Box<dyn Error>> {
-    //TODO: change line below
-    let alias = String::from("speaker");
+fn disconnect_all() -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None)?;
     let adapter = Adapter::init(session)?;
-    let store = read_devices()?;
+    let devices = adapter.get_device_list()?;
 
-    let path = match store.get(&alias) {
-        Some(path) => path,
-        None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
-    };
+    let mut connected_devices = 0;
+    for device in devices {
+        let device = Device::new(session, device);
+        if device.is_connected()? {
+            connected_devices += 1;
+            // TODO: get friendlier alias from device store?
+            println!("Disconnecting from {}.", device.get_alias()?);
+            device.disconnect()?;
+            println!("Successfullly disconnected from {}.", device.get_alias()?);
+        }
+    }
 
-    let device = Device::new(session, path.to_string());
-    let connected = device.is_connected();
-    println!("connected: {:?}", connected);
-    device.disconnect();
+    if connected_devices == 0 {
+        return Err("No connected devices.".into());
+    }
 
     Ok(())
 }
