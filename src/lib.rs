@@ -49,12 +49,8 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
         if let Some(d) = matches.value_of("device") {
             //TODO: implement disconnect from single
             println!("Disconnecting from {}", d);
-        } else if matches.is_present("all") {
-            println!("Disconnecting from all");
-            disconnect_all();
         } else {
-            println!("No arguments provided, disconnecting from all.");
-            disconnect_all();
+            disconnect_all()?;
         }
     }
 
@@ -90,6 +86,7 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
 }
 
 fn disconnect_all() -> Result<(), Box<dyn Error>> {
+    println!("Disconnecting from all");
     let session = &Session::create_session(None)?;
     let adapter = Adapter::init(session)?;
     let devices = adapter.get_device_list()?;
