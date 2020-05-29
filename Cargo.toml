@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 blurz = "0.4.0"
+clap = "2.33.1"

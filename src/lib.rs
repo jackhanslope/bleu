@@ -6,28 +6,11 @@ use std::fs;
 use std::io::ErrorKind;
 use std::vec;
 
+use clap::{App, Arg, SubCommand};
+
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
 use blurz::bluetooth_session::BluetoothSession as Session;
-
-pub struct Config {
-    pub command: String,
-    pub device: String,
-}
-
-impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        // TODO: change this so that I can input only one argument for disconnect
-        if args.len() < 3 {
-            return Err("not enough args");
-        }
-
-        let command = args[1].clone();
-        let device = args[2].clone();
-
-        Ok(Config { command, device })
-    }
-}
 
 fn read_devices() -> Result<HashMap<String, String>, &'static str> {
     let contents =
@@ -53,11 +36,25 @@ fn read_devices() -> Result<HashMap<String, String>, &'static str> {
     Ok(store)
 }
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    match &config.command[..] {
-        "connect" => connect(config.device)?,
-        "disconnect" => disconnect_all()?,
-        _ => return Err(format!("Command {} not recognised.", config.command).into()),
+pub fn run(app: App) -> Result<(), Box<dyn Error>> {
+    let matches = app.get_matches();
+    if let Some(ref matches) = matches.subcommand_matches("connect") {
+        // can do straight unwrap becuase it'll always have a value
+        let device = matches.value_of("device").unwrap();
+
+        connect(device.to_string())?;
+    }
+
+    if let Some(ref matches) = matches.subcommand_matches("disconnect") {
+        if let Some(d) = matches.value_of("device") {
+            //TODO: implement disconnect from single
+            // println!("Disconnecting from {}", d);
+            println!("Disconnect from single not implimented yet.");
+        } else if matches.is_present("all") {
+            disconnect_all()?;
+        } else {
+            println!("please provide an arg");
+        }
     }
 
     Ok(())
@@ -79,6 +76,7 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     } else {
         println!("Attempting to connect to {}", alias);
         device.connect(10000).ok();
+        //FIXME: sometimes the line below is thinking that we've connected even when we haven't
         if device.is_connected()? {
             println!("Connection to {} successful", alias);
         } else {
@@ -90,6 +88,7 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
 }
 
 fn disconnect_all() -> Result<(), Box<dyn Error>> {
+    println!("Disconnecting from all");
     let session = &Session::create_session(None)?;
     let adapter = Adapter::init(session)?;
     let devices = adapter.get_device_list()?;
