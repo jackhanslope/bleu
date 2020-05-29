@@ -32,7 +32,7 @@ fn main() {
                 .arg(
                     Arg::with_name("device")
                         .help("the device you'd like to disconnect from")
-                        .required(false)
+                        .required(true)
                         .index(1)
                         .conflicts_with("all"),
                 ),

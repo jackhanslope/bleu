@@ -48,9 +48,12 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
     if let Some(ref matches) = matches.subcommand_matches("disconnect") {
         if let Some(d) = matches.value_of("device") {
             //TODO: implement disconnect from single
-            println!("Disconnecting from {}", d);
-        } else {
+            // println!("Disconnecting from {}", d);
+            println!("Disconnect from single not implimented yet.");
+        } else if matches.is_present("all") {
             disconnect_all()?;
+        } else {
+            println!("please provide an arg");
         }
     }
 
@@ -77,7 +80,6 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
         if device.is_connected()? {
             println!("Connection to {} successful", alias);
         } else {
-            //TODO: the line below isn't being propogated out properly
             return Err("Connection unsuccessful".into());
         }
     }
