@@ -1,18 +1,17 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::ErrorKind;
 use std::path::Path;
 
+use bimap::BiHashMap;
 use clap::App;
+use serde_json;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
 use blurz::bluetooth_session::BluetoothSession as Session;
 
-use serde_json;
-
-fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
+fn read_devices() -> Result<BiHashMap<String, String>, Box<dyn Error>> {
     let json_file_path = Path::new("device_store.json");
     let json_file = match File::open(json_file_path) {
         Ok(file) => file,
@@ -61,7 +60,7 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None)?;
     let store = read_devices()?;
 
-    let path = match store.get(&alias) {
+    let path = match store.get_by_left(&alias) {
         Some(path) => path,
         None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
     };
@@ -111,7 +110,7 @@ fn disconnect_all() -> Result<(), Box<dyn Error>> {
 fn disconnect_single(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None)?;
     let store = read_devices()?;
-    let path = match store.get(&alias) {
+    let path = match store.get_by_left(&alias) {
         Some(path) => path,
         None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
     };
