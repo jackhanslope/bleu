@@ -130,6 +130,38 @@ fn disconnect_single(alias: String) -> Result<(), Box<dyn Error>> {
 }
 
 fn list_connected() -> Result<(), Box<dyn Error>> {
-    println!("listing connected");
+    let session = &Session::create_session(None)?;
+    let adapter = Adapter::init(session)?;
+
+    let store = read_devices()?;
+    let mut known_devices = Vec::new();
+    let mut unknown_devices = Vec::new();
+
+    for device_path in adapter.get_device_list()? {
+        let device = Device::new(session, device_path.clone());
+        if device.is_connected()? {
+            match store.get_by_right(&device_path) {
+                Some(alias) => known_devices.push(alias),
+                None => {
+                    let device = Device::new(session, device_path);
+                    let name = device.get_name()?;
+                    unknown_devices.push(name);
+                }
+            }
+        };
+    }
+
+    if unknown_devices.len() + known_devices.len() == 0 {
+        println!("no connected devices");
+    } else {
+        println!("Connected devices:");
+        for device in known_devices {
+            println!("{}", device);
+        }
+        for device in unknown_devices {
+            println!("Unknown device: {}", device);
+        }
+    }
+
     Ok(())
 }
