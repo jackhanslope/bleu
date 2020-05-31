@@ -44,13 +44,9 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
 
     if let Some(ref matches) = matches.subcommand_matches("disconnect") {
         if let Some(d) = matches.value_of("device") {
-            //TODO: implement disconnect from single
-            // println!("Disconnecting from {}", d);
-            println!("Disconnect from single {} not implimented yet.", d);
+            disconnect_single(d.to_string())?;
         } else if matches.is_present("all") {
             disconnect_all()?;
-        } else {
-            println!("please provide an arg");
         }
     }
 
@@ -68,11 +64,11 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
 
     let device = Device::new(session, path.to_string());
     if device.is_connected()? {
+        // TODO: change this into a return error
         println!("Already connected to {}", alias);
     } else {
         println!("Attempting to connect to {}", alias);
         device.connect(10000).ok();
-        //FIXME: sometimes the line below is thinking that we've connected even when we haven't
         if device.is_connected()? {
             println!("Connection to {} successful", alias);
         } else {
@@ -105,5 +101,27 @@ fn disconnect_all() -> Result<(), Box<dyn Error>> {
         return Err("No connected devices.".into());
     }
 
+    Ok(())
+}
+
+fn disconnect_single(alias: String) -> Result<(), Box<dyn Error>> {
+    let session = &Session::create_session(None)?;
+    let store = read_devices()?;
+    let path = match store.get(&alias) {
+        Some(path) => path,
+        None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
+    };
+    let device = Device::new(session, path.to_string());
+    if !device.is_connected()? {
+        return Err(format!("Not connected to {}", alias).into());
+    } else {
+        println!("Attempting to disconnect to {}", alias);
+        device.disconnect()?;
+        if !device.is_connected()? {
+            println!("Disconnection from {} successful", alias);
+        } else {
+            return Err("Disconnection unsuccessful".into());
+        }
+    }
     Ok(())
 }
