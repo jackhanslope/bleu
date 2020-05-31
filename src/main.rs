@@ -1,7 +1,4 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 use clap::{App, Arg, SubCommand};
-use std::env;
 use std::process;
 
 fn main() {

@@ -1,38 +1,35 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
+use std::fs::File;
 use std::io::ErrorKind;
-use std::vec;
+use std::path::Path;
 
-use clap::{App, Arg, SubCommand};
+use clap::App;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
 use blurz::bluetooth_session::BluetoothSession as Session;
 
-fn read_devices() -> Result<HashMap<String, String>, &'static str> {
-    let contents =
-        match fs::read_to_string("device_store") {
-            Ok(file) => file,
-            Err(e) => match e.kind() {
-                ErrorKind::NotFound => {
-                    return Err("Error accessing stored devices: 'device_store' does not exist.")
-                }
-                _ => return Err(
-                    "Error accessing stored devices: 'device_store' exists but can't be opened.",
-                ),
-            },
-        };
+use serde_json;
 
-    let mut store = HashMap::new();
+fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
+    let json_file_path = Path::new("device_store.json");
+    let json_file = match File::open(json_file_path) {
+        Ok(file) => file,
+        Err(e) => match e.kind() {
+            ErrorKind::NotFound => {
+                return Err(
+                    "Error accessing stored devices: 'device_store.json' does not exist.".into(),
+                )
+            }
+            _ => return Err(
+                "Error accessing stored devices: 'device_store.json' exists but can't be opened."
+                    .into(),
+            ),
+        },
+    };
 
-    for line in contents.lines() {
-        let line_vec: Vec<String> = line.split_whitespace().map(|x| x.to_string()).collect();
-        store.insert(line_vec[0].clone(), line_vec[1].clone());
-    }
-
+    let store = serde_json::from_reader(json_file)?;
     Ok(store)
 }
 
@@ -49,7 +46,7 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
         if let Some(d) = matches.value_of("device") {
             //TODO: implement disconnect from single
             // println!("Disconnecting from {}", d);
-            println!("Disconnect from single not implimented yet.");
+            println!("Disconnect from single {} not implimented yet.", d);
         } else if matches.is_present("all") {
             disconnect_all()?;
         } else {
@@ -62,7 +59,6 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
 
 fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None)?;
-    let adapter = Adapter::init(session)?;
     let store = read_devices()?;
 
     let path = match store.get(&alias) {
