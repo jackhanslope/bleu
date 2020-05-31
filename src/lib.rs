@@ -1,14 +1,10 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
 use std::fs::File;
 use std::io::ErrorKind;
 use std::path::Path;
-use std::vec;
 
-use clap::{App, Arg, SubCommand};
+use clap::App;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
@@ -50,7 +46,7 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
         if let Some(d) = matches.value_of("device") {
             //TODO: implement disconnect from single
             // println!("Disconnecting from {}", d);
-            println!("Disconnect from single not implimented yet.");
+            println!("Disconnect from single {} not implimented yet.", d);
         } else if matches.is_present("all") {
             disconnect_all()?;
         } else {
@@ -63,7 +59,6 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
 
 fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None)?;
-    let adapter = Adapter::init(session)?;
     let store = read_devices()?;
 
     let path = match store.get(&alias) {
