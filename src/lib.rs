@@ -50,6 +50,10 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
         }
     }
 
+    if let Some(_) = matches.subcommand_matches("connected") {
+        list_connected()?;
+    }
+
     Ok(())
 }
 
@@ -123,5 +127,10 @@ fn disconnect_single(alias: String) -> Result<(), Box<dyn Error>> {
             return Err("Disconnection unsuccessful".into());
         }
     }
+    Ok(())
+}
+
+fn list_connected() -> Result<(), Box<dyn Error>> {
+    println!("listing connected");
     Ok(())
 }

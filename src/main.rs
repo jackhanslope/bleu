@@ -33,7 +33,8 @@ fn main() {
                         .index(1)
                         .conflicts_with("all"),
                 ),
-        );
+        )
+        .subcommand(SubCommand::with_name("connected").about("list currently connected devices"));
 
     if let Err(e) = blue::run(app) {
         println!("{}", e);
