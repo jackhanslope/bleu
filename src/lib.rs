@@ -49,9 +49,7 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
             println!("Disconnect from single {} not implimented yet.", d);
         } else if matches.is_present("all") {
             disconnect_all()?;
-        } else {
-            println!("please provide an arg");
-        }
+        } 
     }
 
     Ok(())
@@ -72,7 +70,6 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     } else {
         println!("Attempting to connect to {}", alias);
         device.connect(10000).ok();
-        //FIXME: sometimes the line below is thinking that we've connected even when we haven't
         if device.is_connected()? {
             println!("Connection to {} successful", alias);
         } else {
