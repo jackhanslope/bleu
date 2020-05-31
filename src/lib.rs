@@ -3,7 +3,9 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
+use std::fs::File;
 use std::io::ErrorKind;
+use std::path::Path;
 use std::vec;
 
 use clap::{App, Arg, SubCommand};
@@ -12,27 +14,26 @@ use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
 use blurz::bluetooth_session::BluetoothSession as Session;
 
-fn read_devices() -> Result<HashMap<String, String>, &'static str> {
-    let contents =
-        match fs::read_to_string("device_store") {
-            Ok(file) => file,
-            Err(e) => match e.kind() {
-                ErrorKind::NotFound => {
-                    return Err("Error accessing stored devices: 'device_store' does not exist.")
-                }
-                _ => return Err(
-                    "Error accessing stored devices: 'device_store' exists but can't be opened.",
-                ),
-            },
-        };
+use serde_json;
 
-    let mut store = HashMap::new();
+fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
+    let json_file_path = Path::new("device_store.json");
+    let json_file = match File::open(json_file_path) {
+        Ok(file) => file,
+        Err(e) => match e.kind() {
+            ErrorKind::NotFound => {
+                return Err(
+                    "Error accessing stored devices: 'device_store.json' does not exist.".into(),
+                )
+            }
+            _ => return Err(
+                "Error accessing stored devices: 'device_store.json' exists but can't be opened."
+                    .into(),
+            ),
+        },
+    };
 
-    for line in contents.lines() {
-        let line_vec: Vec<String> = line.split_whitespace().map(|x| x.to_string()).collect();
-        store.insert(line_vec[0].clone(), line_vec[1].clone());
-    }
-
+    let store = serde_json::from_reader(json_file)?;
     Ok(store)
 }
 
