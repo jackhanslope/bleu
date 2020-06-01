@@ -134,32 +134,28 @@ fn list_connected() -> Result<(), Box<dyn Error>> {
     let adapter = Adapter::init(session)?;
 
     let store = read_devices()?;
-    let mut known_devices = Vec::new();
-    let mut unknown_devices = Vec::new();
+    let mut connected_devices = Vec::new();
 
     for device_path in adapter.get_device_list()? {
         let device = Device::new(session, device_path.clone());
         if device.is_connected()? {
             match store.get_by_right(&device_path) {
-                Some(alias) => known_devices.push(alias),
+                Some(alias) => connected_devices.push(String::from(alias)),
                 None => {
                     let device = Device::new(session, device_path);
                     let name = device.get_name()?;
-                    unknown_devices.push(name);
+                    let prefix = String::from("Unknown device: ");
+                    connected_devices.push(format!("{}{}", prefix, name));
                 }
             }
         };
     }
 
-    if unknown_devices.len() + known_devices.len() == 0 {
-        println!("no connected devices");
+    if connected_devices.len() == 0 {
+        println!("No connected devices");
     } else {
-        println!("Connected devices:");
-        for device in known_devices {
+        for device in connected_devices {
             println!("{}", device);
-        }
-        for device in unknown_devices {
-            println!("Unknown device: {}", device);
         }
     }
 
