@@ -1,18 +1,17 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::ErrorKind;
 use std::path::Path;
 
+use bimap::BiHashMap;
 use clap::App;
+use serde_json;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
 use blurz::bluetooth_session::BluetoothSession as Session;
 
-use serde_json;
-
-fn read_devices() -> Result<HashMap<String, String>, Box<dyn Error>> {
+fn read_devices() -> Result<BiHashMap<String, String>, Box<dyn Error>> {
     let json_file_path = Path::new("device_store.json");
     let json_file = match File::open(json_file_path) {
         Ok(file) => file,
@@ -50,6 +49,10 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
         }
     }
 
+    if let Some(_) = matches.subcommand_matches("connected") {
+        list_connected()?;
+    }
+
     Ok(())
 }
 
@@ -57,7 +60,7 @@ fn connect(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None)?;
     let store = read_devices()?;
 
-    let path = match store.get(&alias) {
+    let path = match store.get_by_left(&alias) {
         Some(path) => path,
         None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
     };
@@ -107,7 +110,7 @@ fn disconnect_all() -> Result<(), Box<dyn Error>> {
 fn disconnect_single(alias: String) -> Result<(), Box<dyn Error>> {
     let session = &Session::create_session(None)?;
     let store = read_devices()?;
-    let path = match store.get(&alias) {
+    let path = match store.get_by_left(&alias) {
         Some(path) => path,
         None => return Err(format!("No entry found in the device store for '{}'", alias).into()),
     };
@@ -123,5 +126,38 @@ fn disconnect_single(alias: String) -> Result<(), Box<dyn Error>> {
             return Err("Disconnection unsuccessful".into());
         }
     }
+    Ok(())
+}
+
+fn list_connected() -> Result<(), Box<dyn Error>> {
+    let session = &Session::create_session(None)?;
+    let adapter = Adapter::init(session)?;
+
+    let store = read_devices()?;
+    let mut connected_devices = Vec::new();
+
+    for device_path in adapter.get_device_list()? {
+        let device = Device::new(session, device_path.clone());
+        if device.is_connected()? {
+            match store.get_by_right(&device_path) {
+                Some(alias) => connected_devices.push(String::from(alias)),
+                None => {
+                    let device = Device::new(session, device_path);
+                    let name = device.get_name()?;
+                    let prefix = String::from("Unknown device: ");
+                    connected_devices.push(format!("{}{}", prefix, name));
+                }
+            }
+        };
+    }
+
+    if connected_devices.len() == 0 {
+        println!("No connected devices");
+    } else {
+        for device in connected_devices {
+            println!("{}", device);
+        }
+    }
+
     Ok(())
 }
