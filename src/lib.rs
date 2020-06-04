@@ -1,12 +1,13 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::ErrorKind;
+use std::sync::Arc;
 
 use bimap::BiHashMap;
 use clap::App;
-use serde_json;
-
+use linefeed::{Interface, ReadResult};
 use serde::{Deserialize, Serialize};
+use serde_json;
 
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
@@ -59,6 +60,10 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
 
     if let Some(_) = matches.subcommand_matches("connected") {
         list_connected()?;
+    }
+
+    if let Some(_) = matches.subcommand_matches("import") {
+        import()?;
     }
 
     Ok(())
@@ -165,6 +170,54 @@ fn list_connected() -> Result<(), Box<dyn Error>> {
         for device in connected_devices {
             println!("{}", device);
         }
+    }
+
+    Ok(())
+}
+
+fn import() -> Result<(), Box<dyn Error>> {
+    let session = &Session::create_session(None)?;
+    let adapter = Adapter::init(session)?;
+    let paired_devices = adapter.get_device_list()?;
+    if paired_devices.is_empty() {
+        return Err("No paired devices".into());
+    }
+    let devices = read_devices()?;
+    let mut unimported_devices: BiHashMap<String, String> = BiHashMap::new();
+    for paired_device_path in paired_devices {
+        if !devices.contains_right(&paired_device_path) {
+            let dev = Device::new(session, paired_device_path.clone());
+            let name = dev.get_name()?;
+            // TODO: maybe turn a device into struct with alias, real_name, path etc.
+            unimported_devices.insert(String::from(name), String::from(paired_device_path));
+        }
+    }
+    if unimported_devices.is_empty() {
+        return Err("All paired devices have been imported".into());
+    }
+
+    println!("Which device would you like to import?");
+    let mut iter = 0;
+    let mut prompt_store: Vec<String> = Vec::new();
+    for device in &unimported_devices {
+        iter += 1;
+        prompt_store.push(device.0.into());
+        println!("{}. {}", iter, device.0);
+    }
+
+    let interface = Arc::new(Interface::new("demo")?);
+    interface.set_prompt("demo> ")?;
+    while let ReadResult::Input(line) = interface.read_line()? {
+        // TODO: check it's an integer and the within the lngth and stuff
+        // TODO: convert line into integer
+        // let device = Device::new(
+        // session,
+        // unimported_devices
+        // .get_by_left(&prompt_store[line - 1])
+        // .unwrap()
+        // .into(),
+        // );
+        break;
     }
 
     Ok(())
