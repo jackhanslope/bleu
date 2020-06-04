@@ -1,3 +1,3 @@
-# blue
+# bleu
 
-blue is a bluetooth cli written in rust
+bleu is a friendly bluetooth cli written in rust
