@@ -5,7 +5,7 @@ fn main() {
     let app = App::new("bleu")
         .version("0.1.0")
         .author("Jack Hanslope <code@jackhanslope.com>")
-        .about("A bluetooth cli written in rust")
+        .about("A friendly bluetooth cli written in rust")
         .subcommand(
             SubCommand::with_name("connect")
                 .about("connect to a bluetooth device")
@@ -34,7 +34,10 @@ fn main() {
                         .conflicts_with("all"),
                 ),
         )
-        .subcommand(SubCommand::with_name("connected").about("list currently connected devices"));
+        .subcommand(SubCommand::with_name("connected").about("list currently connected devices"))
+        .subcommand(
+            SubCommand::with_name("import").about("import paired devices and give them an alias"),
+        );
 
     if let Err(e) = bleu::run(app) {
         println!("{}", e);
