@@ -6,22 +6,27 @@ use bimap::BiHashMap;
 use clap::App;
 use serde_json;
 
+use serde::{Deserialize, Serialize};
+
 use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
 use blurz::bluetooth_session::BluetoothSession as Session;
 
 use dirs;
 
+#[derive(Debug, Serialize, Deserialize)]
+struct Config {
+    devices: BiHashMap<String, String>,
+}
+
 fn read_devices() -> Result<BiHashMap<String, String>, Box<dyn Error>> {
     let mut path = dirs::config_dir().unwrap();
-    path.push("bleu/devices.json");
+    path.push("bleu/config.json");
     let json_file = match File::open(path) {
         Ok(file) => file,
         Err(e) => match e.kind() {
             ErrorKind::NotFound => {
-                return Err(
-                    "Error accessing stored devices: 'device_store.json' does not exist.".into(),
-                )
+                return Err("Error accessing stored devices: config file does not exist.".into())
             }
             _ => return Err(
                 "Error accessing stored devices: 'device_store.json' exists but can't be opened."
@@ -30,7 +35,8 @@ fn read_devices() -> Result<BiHashMap<String, String>, Box<dyn Error>> {
         },
     };
 
-    let store = serde_json::from_reader(json_file)?;
+    let config: Config = serde_json::from_reader(json_file)?;
+    let store = config.devices;
     Ok(store)
 }
 
