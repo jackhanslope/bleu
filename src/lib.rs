@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::ErrorKind;
-use std::path::Path;
 
 use bimap::BiHashMap;
 use clap::App;
@@ -11,9 +10,12 @@ use blurz::bluetooth_adapter::BluetoothAdapter as Adapter;
 use blurz::bluetooth_device::BluetoothDevice as Device;
 use blurz::bluetooth_session::BluetoothSession as Session;
 
+use dirs;
+
 fn read_devices() -> Result<BiHashMap<String, String>, Box<dyn Error>> {
-    let json_file_path = Path::new("device_store.json");
-    let json_file = match File::open(json_file_path) {
+    let mut path = dirs::config_dir().unwrap();
+    path.push("bleu/devices.json");
+    let json_file = match File::open(path) {
         Ok(file) => file,
         Err(e) => match e.kind() {
             ErrorKind::NotFound => {
