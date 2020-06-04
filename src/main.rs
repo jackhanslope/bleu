@@ -2,7 +2,7 @@ use clap::{App, Arg, SubCommand};
 use std::process;
 
 fn main() {
-    let app = App::new("blue")
+    let app = App::new("bleu")
         .version("0.1.0")
         .author("Jack Hanslope <jackhansp@btinternet.com>")
         .about("A bluetooth cli written in rust")
@@ -36,7 +36,7 @@ fn main() {
         )
         .subcommand(SubCommand::with_name("connected").about("list currently connected devices"));
 
-    if let Err(e) = blue::run(app) {
+    if let Err(e) = bleu::run(app) {
         println!("{}", e);
         process::exit(1);
     }

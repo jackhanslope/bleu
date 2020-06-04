@@ -1,7 +1,14 @@
 [package]
-name = "blue"
+name = "bleu"
 version = "0.1.0"
-authors = ["Jack Hanslope <jackhansp@btinternet.com>"]
+authors = ["Jack Hanslope <code@jackhanslope.com>"]
+license = "MIT OR Apache-2.0"
+description = "bleu is a friendly bluetooth cli written in rust"
+readme = "README.md"
+homepage = "https://github.com/jackhanslope/bleu"
+repository = "https://github.com/jackhanslope/bleu"
+keywords = ["cli", "bluetooth"]
+categories = ["command-line-utilities"]
 edition = "2018"
 
 [dependencies]
