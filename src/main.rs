@@ -4,7 +4,7 @@ use std::process;
 fn main() {
     let app = App::new("bleu")
         .version("0.1.0")
-        .author("Jack Hanslope <jackhansp@btinternet.com>")
+        .author("Jack Hanslope <code@jackhanslope.com>")
         .about("A bluetooth cli written in rust")
         .subcommand(
             SubCommand::with_name("connect")
