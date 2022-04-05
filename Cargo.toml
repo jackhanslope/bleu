@@ -1,6 +1,6 @@
 [package]
 name = "bleu"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Jack Hanslope <code@jackhanslope.com>"]
 license = "MIT OR Apache-2.0"
 description = "bleu is a friendly bluetooth cli written in rust"
