@@ -57,7 +57,7 @@ pub fn run(app: App) -> Result<(), Box<dyn Error>> {
         }
     }
 
-    if let Some(_) = matches.subcommand_matches("connected") {
+    if let Some(_) = matches.subcommand_matches("list") {
         list_connected()?;
     }
 

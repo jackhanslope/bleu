@@ -34,7 +34,7 @@ fn main() {
                         .conflicts_with("all"),
                 ),
         )
-        .subcommand(SubCommand::with_name("connected").about("list currently connected devices"));
+        .subcommand(SubCommand::with_name("list").about("list currently connected devices"));
 
     if let Err(e) = bleu::run(app) {
         println!("{}", e);
