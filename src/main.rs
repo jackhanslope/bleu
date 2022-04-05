@@ -3,7 +3,7 @@ use std::process;
 
 fn main() {
     let app = App::new("bleu")
-        .version("0.1.0")
+        .version(clap::crate_version!())
         .author("Jack Hanslope <code@jackhanslope.com>")
         .about("A bluetooth cli written in rust")
         .subcommand(
